@@ -1,0 +1,415 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://innovaphone.com/json-schema/runtime-config.schema.json",
+    "title": "innovaphone JavaScript Runtime Config Schema",
+    "description": "The JSON schema for the config.json configuration file of the generic app.",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "database": {
+            "description": "The database configuration object, contains an init array",
+            "type": "object",
+            "properties": {
+                "init": {
+                    "description": "The init array contains objects for tables or statemens definitions",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "description": "The table init object",
+                                "type": "object",
+                                "properties": {
+                                    "cmd": {
+                                        "enum": [ "table" ],
+                                        "description": "table command",
+                                        "type": "string",
+                                        "default": "table"
+                                    },
+                                    "name": {
+                                        "description": "The name of the database table",
+                                        "type": "string"
+                                    },
+                                    "init": {
+                                        "description": "The SQL type definition of the columns",
+                                        "type": "array",
+                                        "items": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "cmd": {
+                                                            "type": "string",
+                                                            "enum": [ "column" ],
+                                                            "default": "column",
+                                                            "description": "column"
+                                                        },
+                                                        "name": {
+                                                            "description": "Name of the database column",
+                                                            "type": "string"
+                                                        },
+                                                        "type": {
+                                                            "description": "Type of the database column",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [ "cmd", "name", "type" ],
+                                                    "additionalProperties": false
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "cmd": {
+                                                            "description": "Specifies the constraint of a column.",
+                                                            "type": "string",
+                                                            "enum": [ "constraint" ],
+                                                            "default": "constraint"
+                                                        },
+                                                        "name": {
+                                                            "description": "The name of the column.",
+                                                            "type": "string"
+                                                        },
+                                                        "value": {
+                                                            "description": "The constraint of the column, e.g. \"UNIQUE (domain_id, name)\".",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [ "cmd", "name", "value" ],
+                                                    "additionalProperties": false
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "cmd": {
+                                                            "description": "Adds an index to the table. Indices can include a single column or multiple columns.",
+                                                            "type": "string",
+                                                            "enum": [ "index" ],
+                                                            "default": "index"
+                                                        },
+                                                        "name": {
+                                                            "description": "Name of the index",
+                                                            "type": "string"
+                                                        },
+                                                        "value": {
+                                                            "description": "A comma separated list of column names, e.g. \"domain_id, name\".",
+                                                            "type": "string"
+                                                        },
+                                                        "unique": {
+                                                            "description": "Tells if the data in the specified columns is unique.",
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [ "cmd", "name", "value" ],
+                                                    "additionalProperties": false
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [ "cmd", "name", "init" ],
+                                "uniqueItems": true
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "cmd": {
+                                        "enum": [ "statement" ],
+                                        "description": "Needs a column",
+                                        "type": "string",
+                                        "default": "statement"
+                                    },
+                                    "name": {
+                                        "description": "The name of the database statement",
+                                        "type": "string"
+                                    },
+                                    "query": {
+                                        "description": "Defines the SQL statement, with placeholders for the arguments (%s for strings, %u for unsigned integers, %i for signed integers, %llu for unsigned 64 bit integers, %lli for signed 64bit integers and %b for boolean values).",
+                                        "type": "string"
+                                    },
+                                    "args": {
+                                        "description": "Contains a property for each argument in the order of the appearance of the respective placeholder in the query. The name of these properties are used as name for the properties holding the value of the argument in the AppWebsocket message to invoke the statement.\n\nIf the name of an args property start with '@', it identifies a variable. There are some predefined variables: @domain - domain of logged in user, @sip - sip URI of logged in user, @dn - display name of logged in user.\n\nOther variables may be defined dynamically by the return value of an SQL INSERT statement. The value of the property is an object, which contains a string property \"type\" defining the type of the argument. For the \"type\" the values \"string\", \"int\", \"unsigned\", \"long\", \"ulong64\", \"bool\" are available.",
+                                        "type": "object",
+                                        "patternProperties": {
+                                            "^.*$": {
+                                                "description": "Object for an argument.",
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "description": "Definition of the type for the argument.",
+                                                        "type": "string",
+                                                        "enum": [ "string", "int", "unsigned", "long", "ulong64", "bool" ]
+                                                    }
+                                                },
+                                                "required": [ "type" ],
+                                                "additionalProperties": false
+                                            }
+                                        }
+                                    },
+                                    "monitor": {
+                                        "description": "An optional identifier which can be used to monitor this statement. The AppWebsocket message SqlMonitor can be used to monitor a statement with this property set",
+                                        "type": "string"
+                                    },
+                                    "mode": {
+                                        "description": "The mode in which this statement is executed. Several statements with the same name can be configured for different modes. Depending on the current mode the statement with matching name and mode is used. If node mode is configured, it is the default which is used if no mode matches directly.",
+                                        "type": "string"
+                                    },
+                                    "return": {
+                                        "description": "Identifies a variable into which the return value of an INSERT statement may be stored.",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [ "cmd", "name", "query" ],
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "cmd": {
+                                        "enum": [ "sequence" ],
+                                        "description": "Creates a sequence table.",
+                                        "type": "string",
+                                        "default": "sequence"
+                                    },
+                                    "name": {
+                                        "description": "The name of the sequence table.",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [ "cmd", "name" ],
+                                "additionalProperties": false
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "config": {
+            "description": "The config object is used to define config items that can be used from the different config libraries:\n - in the web application\n - in a JavaScript app serivce",
+            "type": "object",
+            "properties": {
+                "init": {
+                    "description": "Array of config items.",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "description": "Config item entry",
+                                "type": "object",
+                                "properties": {
+                                    "cmd": {
+                                        "description": "A config item.",
+                                        "type": "string",
+                                        "enum": [ "item" ],
+                                        "default": "item"
+                                    },
+                                    "name": {
+                                        "description": "Name of the config item.",
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "description": "Type of the config tiem. Possible values \"CHOICE\", \"BOOL\", \"INT\", \"DWORD\", \"LONG64\", \"ULONG64\" or \"STRING\".",
+                                        "type": "string",
+                                        "enum": [ "CHOICE", "BOOL", "INT", "DWORD", "LONG64", "ULONG64", "STRING" ]
+                                    },
+                                    "default": {
+                                        "description": "The default value.",
+                                        "type": [ "string", "integer", "boolean" ]
+                                    },
+                                    "password": {
+                                        "description": "Tells if the config item represents a password. Only for type \"STRING\".",
+                                        "type": "boolean"
+                                    },
+                                    "min": {
+                                        "description": "The minimum value of the config item. Only for types \"INT\", \"DWORD\", \"LONG64\", \"ULONG64\". ",
+                                        "type": "integer"
+                                    },
+                                    "max": {
+                                        "description": "The maximum value of the config item. Only for types \"INT\", \"DWORD\", \"LONG64\", \"ULONG64\". ",
+                                        "type": "integer"
+                                    },
+                                    "options": {
+                                        "description": "An array of strings with the possible values of the choice. Only for type \"CHOICE\".",
+                                        "type": "array",
+                                        "items": {
+                                            "description": "A choice option.",
+                                            "type": "string"
+                                        },
+                                        "uniqueItems": true
+                                    }
+                                }
+                            },
+                            {
+                                "description": "Config mode entry. Defines in which modes the defined config items should be accessible. If not defined, no AppWebsocket connections will have access to the config items.",
+                                "type": "object",
+                                "properties": {
+                                    "cmd": {
+                                        "description": "A mode item.",
+                                        "type": "string",
+                                        "enum": [ "mode" ],
+                                        "default": "mode"
+                                    },
+                                    "name": {
+                                        "description": "The name of the mode. E.g. \"owner.admin\" or \"owner\".",
+                                        "type": "string"
+                                    },
+                                    "read": {
+                                        "description": "Boolean true, if read access should be granted.",
+                                        "type": "boolean"
+                                    },
+                                    "write": {
+                                        "description": "Boolean true, if write access should be granted.",
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": [ "cmd", "name" ],
+                                "additionalProperties": false
+                            }
+                        ]
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "dbfiles": {
+            "description": "The dbfiles object defines the instances of dbfiles that are representing folders with files in the database.",
+            "type": "object",
+            "properties": {
+                "init": {
+                    "description": "The init array of dbfiles.",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "description": "The dbfiles entry. Starts a dbfiles instance.",
+                                "type": "object",
+                                "properties": {
+                                    "cmd": {
+                                        "description": "Starts the dbfiles instance.",
+                                        "type": "string",
+                                        "enum": [ "start" ],
+                                        "default": "start"
+                                    },
+                                    "name": {
+                                        "description": "The name of the dbfiles instance.",
+                                        "type": "string"
+                                    },
+                                    "folder": {
+                                        "description": "An SQL type, which references another database row, which is used as a folder for the files.\nExample: \"BIGINT REFERENCES reports(id) ON DELETE CASCADE\".",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [ "cmd", "name", "folder" ],
+                                "additionalProperties": false
+                            }
+                        ]
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "apis": {
+            "description": "The apis object contains a property of type object for each App that publishes an API on the myApps client. It should match the app name that is used for AppWebsocket connection.\n Example: \"manufacturer-appname\".",
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "description": "The App object contains a property of type object for each API provided by this App.\nExample: \"com.innovaphone.phoneinfo\".",
+                    "type": "object",
+                    "patternProperties": {
+                        "(?!^presense|hidden$)(^.*$)": {
+                            "description": "Definition of an API.",
+                            "type": "object",
+                            "properties": {
+                                "info": {
+                                    "description": "An info object on an API. It is used to provide additional specific information for this API.",
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "properties": {
+                        "presense": {
+                            "description": "With the property \"presence\" the App Service indicates that it will receive presence subscription calls for badge counts.\nSet it to \"true\" if the app receives the presence subscription within the app service.\nIf the presence subscription should not be done to the app service but to a distinct SIP URI, it can be specified as a string.",
+                            "type": [ "boolean", "string" ]
+                        },
+                        "hidden": {
+                            "description": " The property \"hidden\" can be used to hide the app from myApps UI.",
+                            "type": "boolean"
+                        }
+                    }
+                }
+            },
+            "examples": [
+                {
+                    "manufacturer-appname": {
+                        "com.innovaphone.phoneinfo": {
+                            "info": {}
+                        },
+                        "presence": true,
+                        "hidden": true
+                    }
+                }
+            ]
+        },
+        "serviceApis": {
+            "description": "The serviceApis object contains a property of type object for each App that publishes an API on its App Service. It should match the app name that is used for AppWebsocket connection.\n Example: \"manufacturer-appname\".",
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "description": "The App object contains a property of type object for each API provided by this App Service.\nExample: \"com.innovaphone.provisioning\".",
+                    "type": "object",
+                    "patternProperties": {
+                        "(?!^com.innovaphone.provisioning$)(^.*$)": {
+                            "description": "An identifier of an API.",
+                            "type": "object",
+                            "properties": {
+                                "info": {
+                                    "description": "An info object for the API. It is used to provide additional specific information for this API.",
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "com.innovaphone.provisioning": {
+                            "description": "An identifier of a provisioning API.",
+                            "type": "object",
+                            "properties": {
+                                "info": {
+                                    "description": "An info object for the API. It is used to provide additional specific information for this API.",
+                                    "type": "object",
+                                    "properties": {
+                                        "api": {
+                                            "description": "A required property for com.innovaphone.provisioning API. Defines an \"api\" property for the JsonApi handling the provisining requests.",
+                                            "type": "string",
+                                            "enum": [ "Provisioning" ],
+                                            "default": "Provisioning"
+                                        }
+                                    },
+                                    "required": [ "api" ]
+                                },
+                                "title": {
+                                    "description": "Title of the provisioning app."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "javascript": {
+            "description": "The javascript object specifies the JavaScript files that shall be executed in the JavaScript Environment on the service-side, when the app instance is started.",
+            "type": "object",
+            "properties": {
+                "eval": {
+                    "description": "An array containing filenames of JavaScript files.\nYou can also use an asterisk as a wildcard at the end of an entry, in order to execute all JS files in a subtree of the httpfiles.zip.\nExample: \"subfolder/*\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minitems": 1
+                }
+            }
+        }
+    },
+    "uniqueItems": true,
+    "additionalProperties": false
+}

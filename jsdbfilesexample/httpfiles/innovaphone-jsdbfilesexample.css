@@ -1,0 +1,103 @@
+
+body {
+    background-color:var(--bg);
+    color:var(--text-standard);
+    overflow:auto;
+}
+
+a {
+    color: var(--text-standard);
+    text-decoration: underline;
+}
+
+div.button1 {
+    position:absolute;
+    left:10px;
+    top:10px;
+    box-sizing:border-box;
+    width:calc(100% - 20px);
+    height:40px;
+    padding:10px;
+    background-color:var(--button);
+    color:var(--text-standard);
+    font-size:14px;
+    text-align:center;
+    cursor:pointer;
+}
+
+div.button {
+    box-sizing: border-box;
+    width: fit-content;
+    height: 30px;
+    padding: 5px 10px 5px 10px;
+    background-color: var(--button);
+    color: var(--text-standard);
+    font-size: 14px;
+    text-align: center;
+    cursor: pointer;
+    margin: 0px 2px 0px 0px;
+}
+
+div.filelist {
+
+}
+
+div.fileentry {
+    display: flex;
+    margin: 5px;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-listentry);
+}
+
+.fileentry:nth-child(odd) {
+    background-color: var(--row-bg);
+}
+
+div.fileid, div.filesize, div.created, div.modified, div.private, div.public {
+    padding-right: 5px;
+    text-align: right;
+    width: 5%;
+    white-space: nowrap;
+}
+
+div.fileid {
+    width: 5%;
+    min-width: 20px;
+    text-align: right;
+}
+
+div.filename {
+    width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+div.filesize {
+    min-width: 50px;
+    max-width: max(0px, calc((100% - 120px)*999));
+    overflow:hidden;
+}
+
+@media (max-width: 400px) {
+    div.filesize {
+        display: none;
+    }
+}
+
+div.private, div.public {
+    min-width: fit-content;
+}
+
+dialog {
+    z-index: 10;
+    margin-top: 20px;
+    background: gray;
+    border: none;
+    border-radius: 1rem;
+}
+
+dialog::backdrop {
+    background-color: hsl(250, 100%, 50%, 0.25);
+}
