@@ -8,8 +8,6 @@ innovaphone.jsdbfilesexample = innovaphone.jsdbfilesexample || function (start, 
     this.createNode("body");
     var that = this;
 
-    console.log(start);
-
     var colorSchemes = {
         dark: {
             "--bg": "#191919",
@@ -35,8 +33,52 @@ innovaphone.jsdbfilesexample = innovaphone.jsdbfilesexample || function (start, 
     app.onconnected = appConnected;
     app.onmessage = appMessage;
 
+    var filesToUpload = [];
+
     var dialog = this.add(new innovaphone.ui1.Node("dialog", "", "", ""));
     dialog.add(new innovaphone.ui1.Node("span", "", "Processing...", ""));
+
+    var dropArea = this.add(new innovaphone.ui1.Div("border: 5px solid blue; width: 200px; height: 100px;", "", "droparea"));
+    dropArea.add(new innovaphone.ui1.Node("p", "", "Drag one or more PDF files to this drop zone.", ""));
+    dropArea.container.addEventListener('drop', dropHandler, true);
+    dropArea.container.addEventListener('dragover', dragOverHandler, true);
+
+    function dropHandler(ev) {
+        console.log("File(s) dropped");
+
+        // Prevent default behavior (Prevent file from being opened)
+        ev.stopPropagation();
+        ev.preventDefault();
+
+        if (ev.dataTransfer && ev.dataTransfer.items) {
+            // Use DataTransferItemList interface to access the file(s)
+            [...ev.dataTransfer.items].forEach((item, i) => {
+                // If dropped items aren't files, reject them
+                if (item.kind === "file") {
+                    const file = item.getAsFile();
+                    console.log(`... file[${i}].name = ${file.name}`);
+                    filesToUpload.push(file);
+                }
+            });
+            startfileUpload();
+        } else {
+            // Use DataTransfer interface to access the file(s)
+            [...ev.dataTransfer.files].forEach((file, i) => {
+                console.log(`... file[${i}].name = ${file.name}`);
+                filesToUpload.push(file);
+            });
+            startfileUpload();
+        }
+    }
+
+    function dragOverHandler(ev) {
+        console.log("File(s) in drop zone");
+
+        // Prevent default behavior (Prevent file from being opened)
+        ev.stopPropagation();
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect = 'copy';
+    }
 
     var input = this.add(new innovaphone.ui1.Node("input", "", "", ""));
     input.setAttribute("id", "fileinput").setAttribute("type", "file");
@@ -49,6 +91,12 @@ innovaphone.jsdbfilesexample = innovaphone.jsdbfilesexample || function (start, 
 
     function onSelectFile() {
         postFile(input.container.files[0]);
+    }
+
+    function startfileUpload() {
+        if (filesToUpload.length > 0) {
+            postFile(filesToUpload.pop());
+        }
     }
 
     function postFile(file) {
@@ -71,6 +119,7 @@ innovaphone.jsdbfilesexample = innovaphone.jsdbfilesexample || function (start, 
                 dialog.container.close();
                 console.log(data);
                 listFolder(folder);
+                startfileUpload();
             }).catch(error => {
                 dialog.container.close();
                 if (typeof error.json === "function") {
